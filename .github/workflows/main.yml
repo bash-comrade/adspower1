@@ -1,0 +1,812 @@
+name: Windows-Bore-RDP
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: rdp-tunnel
+  cancel-in-progress: true
+
+jobs:
+  rdp:
+    runs-on: windows-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Save Deep Cleanup Script to Desktop
+        shell: pwsh
+        run: |
+          $desktop = "$env:SystemDrive\Users\Public\Desktop"
+          $lines = @(
+            '@echo off',
+            'title DEEP CLEANUP v5.0 - FAST',
+            'color 0C',
+            'echo.',
+            'echo ===========================================================',
+            'echo   DEEP CLEANUP v5.0 - RUN AS ADMINISTRATOR',
+            'echo ===========================================================',
+            'echo.',
+            'echo   Press any key to start...',
+            'pause >nul',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 0: Kill Processes',
+            'echo ==========================================',
+            'taskkill /F /IM devenv.exe >nul 2>&1',
+            'taskkill /F /IM dotnet.exe >nul 2>&1',
+            'taskkill /F /IM mongod.exe >nul 2>&1',
+            'taskkill /F /IM postgres.exe >nul 2>&1',
+            'taskkill /F /IM mysql.exe >nul 2>&1',
+            'taskkill /F /IM firefox.exe >nul 2>&1',
+            'taskkill /F /IM chrome.exe >nul 2>&1',
+            'taskkill /F /IM java.exe >nul 2>&1',
+            'taskkill /F /IM node.exe >nul 2>&1',
+            'taskkill /F /IM python.exe >nul 2>&1',
+            'taskkill /F /IM docker.exe >nul 2>&1',
+            'echo   [OK] Processes killed',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 1: Program Files (x86)',
+            'echo ==========================================',
+            'echo   [1/75] Android SDK...',
+            'rd /s /q "C:\Program Files (x86)\Android" >nul 2>&1',
+            'if not exist "C:\Program Files (x86)\Android" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [2/75] Microsoft SDKs (x86)...',
+            'rd /s /q "C:\Program Files (x86)\Microsoft SDKs" >nul 2>&1',
+            'if not exist "C:\Program Files (x86)\Microsoft SDKs" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [3/75] Windows Kits 10...',
+            'rd /s /q "C:\Program Files (x86)\Windows Kits" >nul 2>&1',
+            'if not exist "C:\Program Files (x86)\Windows Kits" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [4/75] Visual Studio (x86)...',
+            'rd /s /q "C:\Program Files (x86)\Microsoft Visual Studio" >nul 2>&1',
+            'if not exist "C:\Program Files (x86)\Microsoft Visual Studio" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [5/75] Reference Assemblies...',
+            'rd /s /q "C:\Program Files (x86)\Reference Assemblies" >nul 2>&1',
+            'if not exist "C:\Program Files (x86)\Reference Assemblies" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [6/75] dotnet (x86)...',
+            'rd /s /q "C:\Program Files (x86)\dotnet" >nul 2>&1',
+            'if not exist "C:\Program Files (x86)\dotnet" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [7/75] MSBuild (x86)...',
+            'rd /s /q "C:\Program Files (x86)\MSBuild" >nul 2>&1',
+            'if not exist "C:\Program Files (x86)\MSBuild" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 2: Program Files',
+            'echo ==========================================',
+            'echo   [8/75] dotnet SDK...',
+            'rd /s /q "C:\Program Files\dotnet" >nul 2>&1',
+            'if not exist "C:\Program Files\dotnet" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [9/75] Azure Cosmos DB...',
+            'rd /s /q "C:\Program Files\Azure Cosmos DB Emulator" >nul 2>&1',
+            'if not exist "C:\Program Files\Azure Cosmos DB Emulator" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [10/75] LLVM...',
+            'rd /s /q "C:\Program Files\LLVM" >nul 2>&1',
+            'if not exist "C:\Program Files\LLVM" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [11/75] MongoDB...',
+            'rd /s /q "C:\Program Files\MongoDB" >nul 2>&1',
+            'if not exist "C:\Program Files\MongoDB" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [12/75] PostgreSQL...',
+            'rd /s /q "C:\Program Files\PostgreSQL" >nul 2>&1',
+            'if not exist "C:\Program Files\PostgreSQL" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [13/75] OpenSSL...',
+            'rd /s /q "C:\Program Files\OpenSSL" >nul 2>&1',
+            'if not exist "C:\Program Files\OpenSSL" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [14/75] WSL...',
+            'rd /s /q "C:\Program Files\WSL" >nul 2>&1',
+            'if not exist "C:\Program Files\WSL" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [15/75] Unity Hub...',
+            'rd /s /q "C:\Program Files\Unity Hub" >nul 2>&1',
+            'if not exist "C:\Program Files\Unity Hub" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [16/75] Service Fabric...',
+            'rd /s /q "C:\Program Files\Microsoft Service Fabric" >nul 2>&1',
+            'if not exist "C:\Program Files\Microsoft Service Fabric" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [17/75] MySQL...',
+            'rd /s /q "C:\Program Files\MySQL" >nul 2>&1',
+            'if not exist "C:\Program Files\MySQL" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [18/75] AWS CLI...',
+            'rd /s /q "C:\Program Files\Amazon" >nul 2>&1',
+            'if not exist "C:\Program Files\Amazon" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [19/75] Google Chrome...',
+            'rd /s /q "C:\Program Files\Google\Chrome" >nul 2>&1',
+            'if not exist "C:\Program Files\Google\Chrome" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [20/75] SQL Server...',
+            'rd /s /q "C:\Program Files\Microsoft SQL Server" >nul 2>&1',
+            'if not exist "C:\Program Files\Microsoft SQL Server" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [21/75] Git...',
+            'rd /s /q "C:\Program Files\Git" >nul 2>&1',
+            'if not exist "C:\Program Files\Git" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [22/75] Firefox...',
+            'rd /s /q "C:\Program Files\Mozilla Firefox" >nul 2>&1',
+            'if not exist "C:\Program Files\Mozilla Firefox" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [23/75] Microsoft SDKs...',
+            'rd /s /q "C:\Program Files\Microsoft SDKs" >nul 2>&1',
+            'if not exist "C:\Program Files\Microsoft SDKs" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [24/75] mongosh...',
+            'rd /s /q "C:\Program Files\mongosh" >nul 2>&1',
+            'if not exist "C:\Program Files\mongosh" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [25/75] CMake...',
+            'rd /s /q "C:\Program Files\CMake" >nul 2>&1',
+            'if not exist "C:\Program Files\CMake" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [26/75] IIS Express...',
+            'rd /s /q "C:\Program Files\IIS Express" >nul 2>&1',
+            'if not exist "C:\Program Files\IIS Express" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [27/75] ImageMagick...',
+            'rd /s /q "C:\Program Files\ImageMagick-7.1.2-Q16-HDRI" >nul 2>&1',
+            'if not exist "C:\Program Files\ImageMagick-7.1.2-Q16-HDRI" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 3: C:\ Root Folders',
+            'echo ==========================================',
+            'echo   [28/75] C:\Android...',
+            'rd /s /q "C:\Android" >nul 2>&1',
+            'if not exist "C:\Android" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [29/75] Julia...',
+            'rd /s /q "C:\Julia" >nul 2>&1',
+            'if not exist "C:\Julia" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [30/75] Miniconda...',
+            'rd /s /q "C:\Miniconda" >nul 2>&1',
+            'if not exist "C:\Miniconda" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [31/75] mingw64...',
+            'rd /s /q "C:\mingw64" >nul 2>&1',
+            'if not exist "C:\mingw64" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [32/75] mingw32...',
+            'rd /s /q "C:\mingw32" >nul 2>&1',
+            'if not exist "C:\mingw32" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [33/75] Modules...',
+            'rd /s /q "C:\Modules" >nul 2>&1',
+            'if not exist "C:\Modules" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [34/75] actions-runner...',
+            'rd /s /q "C:\actions-runner" >nul 2>&1',
+            'if not exist "C:\actions-runner" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [35/75] actionarchivecache...',
+            'rd /s /q "C:\actionarchivecache" >nul 2>&1',
+            'if not exist "C:\actionarchivecache" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [36/75] msys64...',
+            'rd /s /q "C:\msys64" >nul 2>&1',
+            'if not exist "C:\msys64" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [37/75] tools...',
+            'rd /s /q "C:\tools" >nul 2>&1',
+            'if not exist "C:\tools" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [38/75] vcpkg...',
+            'rd /s /q "C:\vcpkg" >nul 2>&1',
+            'if not exist "C:\vcpkg" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [39/75] Selenium...',
+            'rd /s /q "C:\SeleniumWebDrivers" >nul 2>&1',
+            'if not exist "C:\SeleniumWebDrivers" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [40/75] PostgreSQL (root)...',
+            'rd /s /q "C:\PostgreSQL" >nul 2>&1',
+            'if not exist "C:\PostgreSQL" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [41/75] npm (root)...',
+            'rd /s /q "C:\npm" >nul 2>&1',
+            'if not exist "C:\npm" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [42/75] ghcup...',
+            'rd /s /q "C:\ghcup" >nul 2>&1',
+            'if not exist "C:\ghcup" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [43/75] rtools45...',
+            'rd /s /q "C:\rtools45" >nul 2>&1',
+            'if not exist "C:\rtools45" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [44/75] Strawberry...',
+            'rd /s /q "C:\Strawberry" >nul 2>&1',
+            'if not exist "C:\Strawberry" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [45/75] hostedtoolcache...',
+            'rd /s /q "C:\hostedtoolcache" >nul 2>&1',
+            'if not exist "C:\hostedtoolcache" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 4: Developer Caches',
+            'echo ==========================================',
+            'echo   [46/75] .rustup...',
+            'rd /s /q "%USERPROFILE%\.rustup" >nul 2>&1',
+            'if not exist "%USERPROFILE%\.rustup" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [47/75] .cargo/bin...',
+            'rd /s /q "%USERPROFILE%\.cargo\bin" >nul 2>&1',
+            'if not exist "%USERPROFILE%\.cargo\bin" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [48/75] .cargo/registry...',
+            'rd /s /q "%USERPROFILE%\.cargo\registry" >nul 2>&1',
+            'if not exist "%USERPROFILE%\.cargo\registry" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [49/75] .dotnet/tools...',
+            'rd /s /q "%USERPROFILE%\.dotnet\tools" >nul 2>&1',
+            'if not exist "%USERPROFILE%\.dotnet\tools" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [50/75] .gradle...',
+            'rd /s /q "%USERPROFILE%\.gradle" >nul 2>&1',
+            'if not exist "%USERPROFILE%\.gradle" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [51/75] .nuget...',
+            'rd /s /q "%USERPROFILE%\.nuget" >nul 2>&1',
+            'if not exist "%USERPROFILE%\.nuget" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 5: AppData Caches',
+            'echo ==========================================',
+            'echo   [52/75] npm Cache...',
+            'rd /s /q "%LOCALAPPDATA%\npm-cache" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\npm-cache" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [53/75] pip Cache...',
+            'rd /s /q "%LOCALAPPDATA%\pip\Cache" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\pip\Cache" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [54/75] Yarn Cache...',
+            'rd /s /q "%LOCALAPPDATA%\yarn" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\yarn" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [55/75] NuGet Cache...',
+            'rd /s /q "%LOCALAPPDATA%\NuGet" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\NuGet" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [56/75] VS Cache...',
+            'rd /s /q "%LOCALAPPDATA%\Microsoft\VisualStudio" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\Microsoft\VisualStudio" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [57/75] Chrome Cache...',
+            'rd /s /q "%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cache" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cache" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [58/75] Docker Desktop...',
+            'rd /s /q "%LOCALAPPDATA%\Docker" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\Docker" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [59/75] Slack Cache...',
+            'rd /s /q "%LOCALAPPDATA%\Slack" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\Slack" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [60/75] Discord Cache...',
+            'rd /s /q "%LOCALAPPDATA%\Discord" >nul 2>&1',
+            'if not exist "%LOCALAPPDATA%\Discord" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [61/75] npm Global...',
+            'rd /s /q "%APPDATA%\npm" >nul 2>&1',
+            'if not exist "%APPDATA%\npm" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 6: ProgramData Caches',
+            'echo ==========================================',
+            'echo   [62/75] Chocolatey...',
+            'rd /s /q "C:\ProgramData\chocolatey" >nul 2>&1',
+            'if not exist "C:\ProgramData\chocolatey" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [63/75] Package Cache...',
+            'rd /s /q "C:\ProgramData\Package Cache" >nul 2>&1',
+            'if not exist "C:\ProgramData\Package Cache" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [64/75] Docker Data...',
+            'rd /s /q "C:\ProgramData\docker" >nul 2>&1',
+            'if not exist "C:\ProgramData\docker" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [65/75] GitHub Data...',
+            'rd /s /q "C:\ProgramData\GitHub" >nul 2>&1',
+            'if not exist "C:\ProgramData\GitHub" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo   [66/75] Runner...',
+            'rd /s /q "C:\ProgramData\runner" >nul 2>&1',
+            'if not exist "C:\ProgramData\runner" (echo   [OK] DELETED) else (echo   [FAILED])',
+            'echo.',
+            'echo ==========================================',
+            'echo   PHASE 7: Temp & Windows Cleanup',
+            'echo ==========================================',
+            'echo   [67/75] Windows Temp...',
+            'del /f /s /q "C:\Windows\Temp\*" >nul 2>&1',
+            'echo   [OK] DELETED',
+            'echo   [68/75] User Temp...',
+            'del /f /s /q "%TEMP%\*" >nul 2>&1',
+            'echo   [OK] DELETED',
+            'echo   [69/75] Windows Update Cache...',
+            'net stop wuauserv >nul 2>&1',
+            'del /f /s /q "C:\Windows\SoftwareDistribution\Download\*" >nul 2>&1',
+            'net start wuauserv >nul 2>&1',
+            'echo   [OK] DELETED',
+            'echo   [70/75] Windows Logs...',
+            'del /f /s /q "C:\Windows\Logs\*" >nul 2>&1',
+            'echo   [OK] DELETED',
+            'echo   [71/75] Prefetch...',
+            'del /f /s /q "C:\Windows\Prefetch\*" >nul 2>&1',
+            'echo   [OK] DELETED',
+            'echo   [72/75] Crash Dumps...',
+            'del /f /s /q "C:\Windows\Minidump\*" >nul 2>&1',
+            'del /f /q "C:\Windows\MEMORY.DMP" >nul 2>&1',
+            'echo   [OK] DELETED',
+            'echo   [73/75] Thumbnail Cache...',
+            'del /f /s /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache_*" >nul 2>&1',
+            'echo   [OK] DELETED',
+            'echo   [74/75] DNS Cache...',
+            'ipconfig /flushdns >nul 2>&1',
+            'echo   [OK] FLUSHED',
+            'echo   [75/75] Recycle Bin...',
+            'rd /s /q "C:\$Recycle.Bin" >nul 2>&1',
+            'echo   [OK] EMPTIED',
+            'echo.',
+            'echo ===========================================================',
+            'echo               CLEANUP COMPLETE - 75/75 ITEMS',
+            'echo ===========================================================',
+            'echo.',
+            'echo   REBOOT RECOMMENDED',
+            'echo.',
+            'echo   Press any key to exit...',
+            'pause >nul'
+          )
+          $lines | Out-File "$desktop\CLEANUP-DEEP.bat" -Encoding ASCII -Force
+          Write-Host "Deep cleanup script saved to: $desktop\CLEANUP-DEEP.bat"
+      - name: Save Dark Mode + Wallpaper Script
+        shell: pwsh
+        run: |
+          $desktop = "$env:SystemDrive\Users\Public\Desktop"
+          $dmLines = @(
+            '# ============================================',
+            '# DARK MODE + WALLPAPER SETUP',
+            '# ============================================',
+            '$ErrorActionPreference = "Stop"',
+            '$downloadDir = "$env:USERPROFILE\Downloads\Wallpaper"',
+            'if (!(Test-Path $downloadDir)) {',
+            '    New-Item -ItemType Directory -Path $downloadDir -Force | Out-Null',
+            '}',
+            '',
+            'Write-Host "DARK MODE ENABLE..." -ForegroundColor Yellow',
+            'try {',
+            '    Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue',
+            '    Start-Sleep -Seconds 2',
+            '    $personalizePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"',
+            '    $dwmPath = "HKCU:\SOFTWARE\Microsoft\Windows\DWM"',
+            '    @($personalizePath, $dwmPath) | ForEach-Object {',
+            '        if (!(Test-Path $_)) { New-Item -Path $_ -Force | Out-Null }',
+            '    }',
+            '    Set-ItemProperty -Path $personalizePath -Name "AppsUseLightTheme" -Value 0 -Type DWord',
+            '    Set-ItemProperty -Path $personalizePath -Name "SystemUsesLightTheme" -Value 0 -Type DWord',
+            '    Set-ItemProperty -Path $dwmPath -Name "ColorizationColor" -Value 0xc4000000 -Type DWord',
+            '    Set-ItemProperty -Path $dwmPath -Name "AccentColor" -Value 0xc40078d4 -Type DWord',
+            '    Start-Process explorer.exe',
+            '    Start-Sleep -Seconds 3',
+            '    Write-Host "[OK] Dark Mode ON!" -ForegroundColor Green',
+            '} catch {',
+            '    Write-Host "[ERROR] $_" -ForegroundColor Red',
+            '}',
+            '',
+            'Write-Host "SET WALLPAPER FROM DEFAULT..." -ForegroundColor Yellow',
+            '$finalWp = "C:\Windows\Web\Wallpaper\ThemeA\img20.jpg"',
+            'if (!(Test-Path $finalWp)) {',
+            '    $fallback = Get-ChildItem "C:\Windows\Web\Wallpaper" -Include *.jpg,*.png -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1',
+            '    if ($fallback) { $finalWp = $fallback.FullName }',
+            '}',
+            'if (Test-Path $finalWp) {',
+            '    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $finalWp',
+            '    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "TileWallpaper" -Value "0"',
+            '    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallpaperStyle" -Value "2"',
+            '    RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True',
+            '    Write-Host "[OK] Wallpaper SET!" -ForegroundColor Green',
+            '} else {',
+            '    Write-Host "[ERROR] Default wallpaper not found!" -ForegroundColor Red',
+            '}',
+            'Write-Host "COMPLETE!" -ForegroundColor Cyan'
+          )
+          $dmLines | Out-File "$desktop\SETUP-DARKMODE-WALLPAPER.ps1" -Encoding UTF8 -Force
+          Write-Host "Dark mode + wallpaper script saved to: $desktop\SETUP-DARKMODE-WALLPAPER.ps1"
+      - name: Create User & Set Password
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'SilentlyContinue'
+          $u = "mastertech"
+          $p = "Mast3rT3ch@2026!"
+          $secpassword = ConvertTo-SecureString -AsPlainText $p -Force
+          New-LocalUser -Name $u -Password $secpassword -FullName $u -Description "RDP User" -ErrorAction SilentlyContinue
+          Add-LocalGroupMember -Group "Administrators" -Member $u -ErrorAction SilentlyContinue
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member $u -ErrorAction SilentlyContinue
+          Set-LocalUser -Name "runneradmin" -Password $secpassword
+          Write-Host "User created: $u"
+      - name: Enable RDP + Aggressive Optimization
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'SilentlyContinue'
+          $u = "mastertech"
+          Write-Host "=== ENABLING RDP ==="
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
+          Write-Host "=== RDP PERFORMANCE SETTINGS ==="
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'ColorDepth' -Value 2
+          $tsPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+          if (-not (Test-Path $tsPath)) { New-Item -Path $tsPath -Force | Out-Null }
+          New-ItemProperty -Path $tsPath -Name 'AVC444ModePreferred' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'AVCHardwareEncodePreferred' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'bEnumerateHWBeforeSW' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'AVCPreferredProfile' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'fEnableRemoteFXAdvancedRemoteApp' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'EncoderGraphicsCacheEnabled' -Value 1 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'SelectTransport' -Value 1 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'MaxInstanceCount' -Value 99 -PropertyType DWord -Force
+          $rdpTcp = 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp'
+          Set-ItemProperty -Path $rdpTcp -Name 'MaxInstanceCount' -Value 99
+          Write-Host "=== TCP LOW LATENCY ==="
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'TcpAckFrequency' -Value 1
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'TCPNoDelay' -Value 1
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'TcpDelAckTicks' -Value 0
+          Write-Host "=== DISABLE FIREWALL ==="
+          Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+          Write-Host "=== KILL HEAVY PROCESSES ==="
+          Get-Process -Name "OneDrive","MicrosoftEdge","msedge","Teams","TeamsPlaywright","Outlook" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Stop-Service -Name "WSearch" -Force -ErrorAction SilentlyContinue
+          Set-Service -Name "WSearch" -StartupType Disabled -ErrorAction SilentlyContinue
+          Write-Host "=== AGGRESSIVE VISUAL EFFECTS OFF ==="
+          $visPath = 'Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects'
+          Set-ItemProperty -Path $visPath -Name 'VisualFXSetting' -Value 2 -Force
+          $advPath = 'Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+          Set-ItemProperty -Path $advPath -Name 'TaskbarAnimations' -Value 0 -Force
+          Set-ItemProperty -Path $advPath -Name 'ListviewShadow' -Value 0 -Force
+          Set-ItemProperty -Path $advPath -Name 'IconsOnly' -Value 1 -Force
+          Set-ItemProperty -Path $advPath -Name 'ListThreshold' -Value 1 -Force
+          Set-ItemProperty -Path $advPath -Name 'ThumbnailSize' -Value 32 -Force
+          Write-Host "=== DISABLE HEAVY SERVICES ==="
+          $servicesToDisable = @('SysMain','DiagTrack','diagnosticshub.standardcollector.service','dmwappushservice','MapsBroker','lfsvc','SharedAccess','RemoteRegistry','XblAuthManager','XblGameSave','XboxGipSvc','wuauserv','BITS')
+          foreach ($svc in $servicesToDisable) {
+            Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
+            Set-Service -Name $svc -StartupType Disabled -ErrorAction SilentlyContinue
+          }
+          Write-Host "=== DISABLE PREFETCH/SUPERFETCH ==="
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' -Name 'EnablePrefetcher' -Value 0 -Force
+          Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' -Name 'EnableSuperfetch' -Value 0 -Force
+          Write-Host "=== HIGH PERFORMANCE POWER ==="
+          powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+          powercfg /change monitor-timeout-ac 0
+          powercfg /change standby-timeout-ac 0
+          powercfg /change hibernate-timeout-ac 0
+          Write-Host "=== DISABLE GAME BAR / DVR ==="
+          $gamePath = 'Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR'
+          if (-not (Test-Path $gamePath)) { New-Item -Path $gamePath -Force | Out-Null }
+          New-ItemProperty -Path $gamePath -Name 'AppCaptureEnabled' -Value 0 -PropertyType DWord -Force
+          $gameBarPath = 'Registry::HKEY_CURRENT_USER\System\GameConfigStore'
+          if (-not (Test-Path $gameBarPath)) { New-Item -Path $gameBarPath -Force | Out-Null }
+          New-ItemProperty -Path $gameBarPath -Name 'GameDVR_Enabled' -Value 0 -PropertyType DWord -Force
+          Write-Host "=== DISABLE WINDOWS DEFENDER REAL-TIME ==="
+          Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+          Set-MpPreference -DisableBehaviorMonitoring $true -ErrorAction SilentlyContinue
+          Set-MpPreference -DisableIOAVProtection $true -ErrorAction SilentlyContinue
+          Set-MpPreference -DisableScriptScanning $true -ErrorAction SilentlyContinue
+          Write-Host "=== FLUSH DNS + NETWORK RESET ==="
+          ipconfig /flushdns | Out-Null
+          netsh interface tcp set global autotuninglevel=disabled | Out-Null
+          Write-Host "=== AGGRESSIVE RDP OPTIMIZATION DONE ==="
+      - name: Ultra RDP Optimization (Smooth)
+        shell: pwsh
+        run: |
+          Write-Host "=== ULTRA RDP SMOOTH OPTIMIZATION ==="
+          Write-Host "[1/12] Disable Windows Defender completely..."
+          try {
+            Set-MpPreference -DisableRealtimeMonitoring $true
+            Set-MpPreference -DisableBehaviorMonitoring $true
+            Set-MpPreference -DisableIOAVProtection $true
+            Set-MpPreference -DisableScriptScanning $true
+            Set-MpPreference -DisableBlockAtFirstSeen $true
+            Set-MpPreference -DisableIntrusionPreventionSystem $true
+            Set-MpPreference -SubmitSamplesConsent 2
+            Set-MpPreference -MAPSReporting Disabled
+            Stop-Service -Name WinDefend -Force -ErrorAction SilentlyContinue
+            Set-Service -Name WinDefend -StartupType Disabled -ErrorAction SilentlyContinue
+            Stop-Service -Name WdNisSvc -Force -ErrorAction SilentlyContinue
+            Set-Service -Name WdNisSvc -StartupType Disabled -ErrorAction SilentlyContinue
+            Write-Host "  [OK] Defender OFF"
+          } catch { Write-Host "  [WARN] Defender partial" }
+          Write-Host "[2/12] Kill ALL heavy processes..."
+          $heavy = @(
+            'OneDrive','MicrosoftEdge','msedge','Teams','TeamsPlaywright','Outlook',
+            'SearchApp','SearchHost','RuntimeBroker','ShellExperienceHost',
+            'StartMenuExperienceHost','TextInputHost','SecurityHealthService',
+            'NisSrv','SgrmBroker','spoolsv','SearchIndexer','WmiPrvSE',
+            'dismhost','sihost','taskhostw','ctfmon','consent',
+            'ApplicationFrameHost','LockApp','YourPhone','PhoneExperienceHost',
+            'GameBar','GameBarPresenceWriter','Xbox.TCUI','XboxGipSvc'
+          )
+          foreach ($proc in $heavy) {
+            Stop-Process -Name $proc -Force -ErrorAction SilentlyContinue
+          }
+          Write-Host "  [OK] Heavy processes killed"
+          Write-Host "[3/12] Disable ALL unnecessary services..."
+          $disableServices = @(
+            'SysMain','DiagTrack','diagnosticshub.standardcollector.service',
+            'dmwappushservice','MapsBroker','lfsvc','SharedAccess','RemoteRegistry',
+            'XblAuthManager','XblGameSave','XboxGipSvc','wuauserv','BITS',
+            'WSearch','PcaSvc','TrkWks','wscsvc',
+            'WMPNetworkSvc','XblAuthManager',
+            'WpnService','WalletService','TabletInputService',
+            'BthServ','bthserv','InstallService','PhoneSvc',
+            'ScDeviceEnum','SCardSvr','ScPolicySvc','SNMPTRAP',
+            'TlntSvr','TlntSVr','W3SVC','WAS',
+            'WMSvc','WpcMonSvc','WPDBusEnum','WwanSvc',
+            'AJRouter','BDESVC','BFE','wbengine',
+            'BluetoothUserService','CDPSvc','CDPUserSvc',
+            'cmidxps','DPS','DusmSvc','EFS',
+            'Fax','FDResPub','FDPHost','FontCache','hidserv',
+            'icssvc','IpxmdlCfg','iphlpsvc','LanmanServer',
+            'LanmanWorkstation','lltdsvc','MBAMProtector',
+            'MSDTC','NaturalAuthentication','Netlogon','NetSetupSvc',
+            'NlaSvc','RasMan','RasAuto','SessionEnv',
+            'SCardSvr','SCPolicySvc',
+            'SNMP','SNMPTRAP','WbioSrvc',
+            'Wcmsvc','Wcmsvc','WcsPlugInService','WdNisSvc',
+            'Wecsvc','WerSvc','Wecsvc','WEPHOSTSVC',
+            'WinDefend','WlanSvc','wmiApSrv','WMPNetworkSvc',
+            'WpnUserService','XblAuthManager','XblGameSave','XboxGipSvc',
+            'edgeupdate','edgeupdatem','MicrosoftEdgeElevationService',
+            'MicrosoftEdgeUpdate'
+          )
+          foreach ($svc in $disableServices) {
+            Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
+            Set-Service -Name $svc -StartupType Disabled -ErrorAction SilentlyContinue
+          }
+          Write-Host "  [OK] Services disabled"
+          Write-Host "[4/12] Disable scheduled tasks..."
+          $tasks = @(
+            '\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser',
+            '\Microsoft\Windows\Application Experience\ProgramDataUpdater',
+            '\Microsoft\Windows\Customer Experience Improvement Program\Consolidator',
+            '\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip',
+            '\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector',
+            '\Microsoft\Windows\Feedback\Siuf\DmClient',
+            '\Microsoft\Windows\Maps\MapsUpdateTask',
+            '\Microsoft\Windows\Maps\MapsToastTask',
+            '\Microsoft\Windows\Maintenance\WinSAT',
+            '\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem',
+            '\Microsoft\Windows\Shell\FamilySafetyMonitor',
+            '\Microsoft\Windows\Shell\FamilySafetyRefreshTask',
+            '\Microsoft\Windows\Windows Error Reporting\QueueReporting',
+            '\Microsoft\Windows\WindowsUpdate\Scheduled Start',
+            '\Microsoft\XblGameSave\XblGameSaveTask'
+          )
+          foreach ($task in $tasks) {
+            schtasks /Change /TN $task /Disable -ErrorAction SilentlyContinue
+          }
+          Write-Host "  [OK] Scheduled tasks disabled"
+          Write-Host "[5/12] Kill Explorer (use Task Manager or cmd)..."
+          Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+          Write-Host "[6/12] Set FULL Best Performance visual settings..."
+          $visPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects'
+          Set-ItemProperty -Path $visPath -Name 'VisualFXSetting' -Value 2 -Force
+          $advPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+          Set-ItemProperty -Path $advPath -Name 'TaskbarAnimations' -Value 0 -Force
+          Set-ItemProperty -Path $advPath -Name 'ListviewShadow' -Value 0 -Force
+          Set-ItemProperty -Path $advPath -Name 'IconsOnly' -Value 1 -Force
+          Set-ItemProperty -Path $advPath -Name 'ListThreshold' -Value 1 -Force
+          Set-ItemProperty -Path $advPath -Name 'ThumbnailSize' -Value 16 -Force
+          Set-ItemProperty -Path $advPath -Name 'TaskbarSmallIcons' -Value 1 -Force
+          Set-ItemProperty -Path $advPath -Name 'ShowTaskViewButton' -Value 0 -Force
+          Set-ItemProperty -Path $advPath -Name 'ShowCortanaButton' -Value 0 -Force
+          Set-ItemProperty -Path $advPath -Name 'TaskbarMn' -Value 0 -Force
+          Set-ItemProperty -Path $advPath -Name 'TaskbarDa' -Value 0 -Force
+          $menuDelay = 'HKCU:\Control Panel\Desktop'
+          Set-ItemProperty -Path $menuDelay -Name 'MenuShowDelay' -Value '0' -Force
+          Set-ItemProperty -Path $menuDelay -Name 'DragFullWindows' -Value '0' -Force
+          Set-ItemProperty -Path $menuDelay -Name 'FontSmoothing' -Value '0' -Force
+          Set-ItemProperty -Path $menuDelay -Name 'UserPreferencesMask' -Value ([byte[]](0x90,0x12,0x03,0x80,0x10,0x00,0x00,0x00)) -Force
+          Write-Host "  [OK] Visual effects minimized"
+          Write-Host "[7/12] Set Theme (Dark + No Transparency)..."
+          $themePath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+          if (-not (Test-Path $themePath)) { New-Item -Path $themePath -Force | Out-Null }
+          Set-ItemProperty -Path $themePath -Name 'AppsUseLightTheme' -Value 0 -Force
+          Set-ItemProperty -Path $themePath -Name 'SystemUsesLightTheme' -Value 0 -Force
+          Set-ItemProperty -Path $themePath -Name 'EnableTransparency' -Value 0 -Force
+          $dwmPath = 'HKCU:\SOFTWARE\Microsoft\Windows\DWM'
+          if (-not (Test-Path $dwmPath)) { New-Item -Path $dwmPath -Force | Out-Null }
+          Set-ItemProperty -Path $dwmPath -Name 'Composition' -Value 0 -Force
+          Set-ItemProperty -Path $dwmPath -Name 'EnableAeroPeek' -Value 0 -Force
+          Set-ItemProperty -Path $dwmPath -Name 'AlwaysHibernateThumbnails' -Value 0 -Force
+          Write-Host "  [OK] Theme Dark, Transparency OFF"
+          Write-Host "[8/12] RDP Low Color + No Compression..."
+          $rdpTcp = 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp'
+          Set-ItemProperty -Path $rdpTcp -Name 'ColorDepth' -Value 4 -Force
+          Set-ItemProperty -Path $rdpTcp -Name 'MinEncryptionLevel' -Value 1 -Force
+          $tsPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+          if (-not (Test-Path $tsPath)) { New-Item -Path $tsPath -Force | Out-Null }
+          New-ItemProperty -Path $tsPath -Name 'AVC444ModePreferred' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'AVCHardwareEncodePreferred' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'AVCPreferredProfile' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'bEnumerateHWBeforeSW' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'fEnableRemoteFXAdvancedRemoteApp' -Value 0 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'SelectTransport' -Value 1 -PropertyType DWord -Force
+          New-ItemProperty -Path $tsPath -Name 'MaxInstanceCount' -Value 99 -PropertyType DWord -Force
+          Write-Host "  [OK] RDP optimized"
+          Write-Host "[9/12] Network Low Latency..."
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'TcpAckFrequency' -Value 1 -Force
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'TCPNoDelay' -Value 1 -Force
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'TcpDelAckTicks' -Value 0 -Force
+          netsh interface tcp set global autotuninglevel=disabled 2>$null
+          netsh interface tcp set global chimney=disabled 2>$null
+          netsh interface tcp set global dca=disabled 2>$null
+          netsh interface tcp set global netdma=disabled 2>$null
+          netsh interface tcp set global timestamps=disabled 2>$null
+          netsh interface tcp set global rss=enabled 2>$null
+          ipconfig /flushdns 2>$null
+          Write-Host "  [OK] Network optimized"
+          Write-Host "[10/12] Disable Firewall + Security..."
+          Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False -ErrorAction SilentlyContinue
+          Stop-Service -Name "mpssvc" -Force -ErrorAction SilentlyContinue
+          Write-Host "  [OK] Firewall OFF"
+          Write-Host "[11/12] High Performance Power Plan..."
+          powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c 2>$null
+          powercfg /change monitor-timeout-ac 0
+          powercfg /change standby-timeout-ac 0
+          powercfg /change hibernate-timeout-ac 0
+          powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR THROTTLEMAX 100
+          powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100
+          powercfg /setactive SCHEME_CURRENT
+          Write-Host "  [OK] High Performance ON"
+          Write-Host "[12/12] Disable GameDVR + Telemetry..."
+          $gamePath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR'
+          if (-not (Test-Path $gamePath)) { New-Item -Path $gamePath -Force | Out-Null }
+          New-ItemProperty -Path $gamePath -Name 'AppCaptureEnabled' -Value 0 -PropertyType DWord -Force
+          $gameBarPath = 'HKCU:\System\GameConfigStore'
+          if (-not (Test-Path $gameBarPath)) { New-Item -Path $gameBarPath -Force | Out-Null }
+          New-ItemProperty -Path $gameBarPath -Name 'GameDVR_Enabled' -Value 0 -PropertyType DWord -Force
+          $diagPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+          if (-not (Test-Path $diagPath)) { New-Item -Path $diagPath -Force | Out-Null }
+          New-ItemProperty -Path $diagPath -Name 'AllowTelemetry' -Value 0 -PropertyType DWord -Force
+          Write-Host "  [OK] GameDVR + Telemetry OFF"
+          Write-Host "[+] Enable Dark Mode..."
+          $personalizePath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+          $dwmPath = 'HKCU:\SOFTWARE\Microsoft\Windows\DWM'
+          if (-not (Test-Path $personalizePath)) { New-Item -Path $personalizePath -Force | Out-Null }
+          if (-not (Test-Path $dwmPath)) { New-Item -Path $dwmPath -Force | Out-Null }
+          Set-ItemProperty -Path $personalizePath -Name 'AppsUseLightTheme' -Value 0 -Force
+          Set-ItemProperty -Path $personalizePath -Name 'SystemUsesLightTheme' -Value 0 -Force
+          Set-ItemProperty -Path $dwmPath -Name 'ColorizationColor' -Value 0xc4000000 -Force
+          Set-ItemProperty -Path $dwmPath -Name 'AccentColor' -Value 0xc40078d4 -Force
+          Set-ItemProperty -Path $dwmPath -Name 'EnableTransparency' -Value 0 -Force
+          Set-ItemProperty -Path $dwmPath -Name 'Composition' -Value 0 -Force
+          Write-Host "  [OK] Dark Mode ON"
+          Write-Host "[+] Set Wallpaper from default Windows..."
+          $finalWp = "C:\Windows\Web\Wallpaper\ThemeA\img20.jpg"
+          if (!(Test-Path $finalWp)) {
+            $fallback = Get-ChildItem "C:\Windows\Web\Wallpaper" -Include *.jpg,*.png -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($fallback) { $finalWp = $fallback.FullName }
+          }
+          Write-Host "  Using: $finalWp"
+          $personalizePath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+          if (-not (Test-Path $personalizePath)) { New-Item -Path $personalizePath -Force | Out-Null }
+          Set-ItemProperty -Path $personalizePath -Name 'AppsUseLightTheme' -Value 0 -Force
+          Set-ItemProperty -Path $personalizePath -Name 'SystemUsesLightTheme' -Value 0 -Force
+          Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'WallPaper' -Value $finalWp -Force
+          Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'TileWallpaper' -Value '0' -Force
+          Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'WallpaperStyle' -Value '2' -Force
+          $wpLines = @(
+            'using System;',
+            'using System.Runtime.InteropServices;',
+            'public class Wallpaper {',
+            '    [DllImport("user32.dll", CharSet = CharSet.Auto)]',
+            '    public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);',
+            '}'
+          )
+          $wpCode = $wpLines -join "`n"
+          Add-Type -TypeDefinition $wpCode -ErrorAction SilentlyContinue
+          [Wallpaper]::SystemParametersInfo(0x0014, 0, $finalWp, 0x0001 -bor 0x0002 -bor 0x0100) | Out-Null
+          Write-Host "  [OK] Wallpaper SET via SystemParametersInfo"
+          $themeIni = "C:\Windows\Resources\Themes\aero\aero.theme"
+          if (Test-Path $themeIni) {
+            try { Start-Process "rundll32.exe" -ArgumentList "shell32.dll,Control_RunDLL desk.cpl,,1" -Wait -ErrorAction SilentlyContinue } catch {}
+          }
+          Write-Host ""
+          Write-Host "=== ULTRA RDP OPTIMIZATION COMPLETE ==="
+          Write-Host "Dark Mode + Wallpaper + Smooth RDP ready!"
+      - name: Verify RDP is Running
+        shell: pwsh
+        run: |
+          Write-Host "=== VERIFYING RDP ==="
+          Start-Service -Name "TermService" -ErrorAction SilentlyContinue
+          Start-Service -Name "UmRdpService" -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 3
+          $rdpEnabled = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -ErrorAction SilentlyContinue
+          if ($rdpEnabled.fDenyTSConnections -eq 0) {
+            Write-Host "[OK] RDP Enabled in registry"
+          } else {
+            Write-Host "[FIX] Enabling RDP..."
+            Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
+          }
+          $port3389 = Get-NetTCPConnection -LocalPort 3389 -ErrorAction SilentlyContinue
+          if ($port3389) {
+            Write-Host "[OK] Port 3389 is LISTENING"
+          } else {
+            Write-Host "[WARN] Port 3389 not listening, restarting RDP service..."
+            Restart-Service -Name "TermService" -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 5
+            $port3389 = Get-NetTCPConnection -LocalPort 3389 -ErrorAction SilentlyContinue
+            if ($port3389) {
+              Write-Host "[OK] Port 3389 now LISTENING after restart"
+            } else {
+              Write-Host "[ERROR] Port 3389 still not listening!"
+            }
+          }
+          $rdpSvc = Get-Service -Name "TermService" -ErrorAction SilentlyContinue
+          Write-Host "TermService status: $($rdpSvc.Status)"
+          $nla = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -ErrorAction SilentlyContinue
+          Write-Host "NLA (UserAuthentication): $($nla.UserAuthentication)"
+      - name: Install Python (default)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install AdsPower (default)
+        shell: pwsh
+        run: |
+          Write-Host "=== Installing AdsPower (latest) ==="
+          winget install -e --id AdsPower.AdsPower --accept-source-agreements --accept-package-agreements --silent
+          Write-Host "[OK] AdsPower install finished"
+          python --version
+      - name: Download & Start Bore Tunnel (Silent)
+        shell: pwsh
+        run: |
+          $u = "mastertech"
+          $p = "Mast3rT3ch@2026!"
+          Write-Host "=== Downloading Bore ==="
+          try {
+            $release = Invoke-RestMethod -Uri "https://api.github.com/repos/ekzhang/bore/releases/latest" -TimeoutSec 15
+            $asset = $release.assets | Where-Object { $_.name -match "windows.*x86_64" -or $_.name -match "windows.*amd64" } | Select-Object -First 1
+            if ($asset) {
+              Write-Host "Downloading: $($asset.browser_download_url)"
+              Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "$env:TEMP\bore.zip" -TimeoutSec 60
+            } else {
+              Write-Host "No Windows asset found, trying direct URL..."
+              Invoke-WebRequest -Uri "https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-x86_64-pc-windows-msvc.zip" -OutFile "$env:TEMP\bore.zip" -TimeoutSec 60
+            }
+          } catch {
+            Write-Host "Release API failed, trying direct download..."
+            Invoke-WebRequest -Uri "https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-x86_64-pc-windows-msvc.zip" -OutFile "$env:TEMP\bore.zip" -TimeoutSec 60
+          }
+          Expand-Archive -Path "$env:TEMP\bore.zip" -DestinationPath "$env:TEMP\bore" -Force
+          $boreExe = Get-ChildItem -Path "$env:TEMP\bore" -Filter "bore.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $boreExe) { $boreExe = "$env:TEMP\bore.exe" }
+          Write-Host "Bore exe: $boreExe"
+          & $boreExe --version 2>&1 | Write-Host
+          Write-Host "=== Starting Bore Tunnel (port 3389) ==="
+          $boreAddress = ""
+          $boreLog = "$env:TEMP\bore-tunnel.log"
+          $boreErr = "$env:TEMP\bore-err.log"
+          for ($attempt = 1; $attempt -le 10; $attempt++) {
+            Write-Host "Attempt $attempt - Starting bore..."
+            Remove-Item $boreLog -Force -ErrorAction SilentlyContinue
+            Remove-Item $boreErr -Force -ErrorAction SilentlyContinue
+            $proc = Start-Process -FilePath $boreExe -ArgumentList "local 3389 --to bore.pub" -NoNewWindow -PassThru -RedirectStandardOutput $boreLog -RedirectStandardError $boreErr
+            Start-Sleep -Seconds 8
+            $output = ""
+            if (Test-Path $boreLog) { $output = Get-Content $boreLog -Raw -ErrorAction SilentlyContinue }
+            $errOutput = ""
+            if (Test-Path $boreErr) { $errOutput = Get-Content $boreErr -Raw -ErrorAction SilentlyContinue }
+            $allOutput = "$output $errOutput"
+            if ($allOutput -match "bore\.pub:(\d+)") {
+              $borePort = $Matches[1]
+              $boreAddress = "bore.pub:$borePort"
+              Write-Host "TUNNEL OK: $boreAddress"
+              break
+            }
+            if ($proc.HasExited) {
+              Write-Host "Bore exited, retrying..."
+              Start-Sleep -Seconds 3
+            }
+          }
+          if ([string]::IsNullOrWhiteSpace($boreAddress)) {
+            $boreAddress = "FAILED - bore.pub server may be down"
+          }
+          $freeGB = [math]::Round((Get-PSDrive C).Free / 1GB, 2)
+          Write-Host ""
+          Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+          Write-Host "  RDP CREDENTIALS - ${freeGB}GB FREE"
+          Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+          Write-Host "  ADDRESS  : $boreAddress"
+          Write-Host "  USERNAME : $u"
+          Write-Host "  PASSWORD : $p"
+          Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+          Write-Host ""
+          Write-Host "Desktop pe: CLEANUP-DEEP.bat + SETUP-DARKMODE-WALLPAPER.ps1"
+          Write-Host ""
+          Write-Host "Tunnel LIVE - keeping alive 6 hours..."
+          while ($true) {
+            Start-Sleep -Seconds 30
+            if ($proc.HasExited) {
+              Write-Host "$(Get-Date -Format 'HH:mm:ss') Bore died, restarting..."
+              Remove-Item $boreLog -Force -ErrorAction SilentlyContinue
+              Remove-Item $boreErr -Force -ErrorAction SilentlyContinue
+              $proc = Start-Process -FilePath $boreExe -ArgumentList "local 3389 --to bore.pub" -NoNewWindow -PassThru -RedirectStandardOutput $boreLog -RedirectStandardError $boreErr
+              Start-Sleep -Seconds 8
+              $newOutput = ""
+              if (Test-Path $boreLog) { $newOutput = Get-Content $boreLog -Raw -ErrorAction SilentlyContinue }
+              Write-Host "Restart output: $newOutput"
+            } else {
+              Write-Host "$(Get-Date -Format 'HH:mm:ss') Tunnel alive (PID: $($proc.Id))"
+            }
+          }
+      - name: Monitor - Report Status
+        if: always()
+        shell: pwsh
+        run: |
+          $runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          Write-Host "=== Monitor ==="
+          Write-Host "Run: $runUrl"
+          $boreProc = Get-Process -Name "bore" -ErrorAction SilentlyContinue
+          if ($boreProc) {
+            Write-Host "Bore: RUNNING (PID: $($boreProc.Id))"
+          } else {
+            Write-Host "Bore: NOT RUNNING"
+          }
+          $freeGB = [math]::Round((Get-PSDrive C).Free / 1GB, 2)
+          "## RDP Status`n- Run: [$env:GITHUB_REPOSITORY#$env:GITHUB_RUN_ID]($runUrl)`n- Time: $(Get-Date)`n- Free Space: ${freeGB} GB`n- Credentials: Saved to Desktop" | Out-File $env:GITHUB_STEP_SUMMARY -Append -Encoding UTF8
